@@ -8,7 +8,7 @@ async def main():
     # 配置服务端连接参数
     server_params = StdioServerParameters(
         command="python",
-        args=["server.py"]
+        args=["xmcp/server/server.py"]
     )
 
     async with stdio_client(server_params) as (read_stream, write_stream):
@@ -19,7 +19,7 @@ async def main():
             tools = await session.list_tools()
             print("Available tools:")
             for tool in tools:
-                print(f"- {tool.name}: {tool.description}")
+                print(tool)
             
 
 if __name__ == "__main__":
