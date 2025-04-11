@@ -1,4 +1,4 @@
-from langchain_ollama import OllamaLLM  # 使用新版本包 [[1]][[7]]
+from langchain_ollama import OllamaLLM
 from langchain.chains import ConversationChain
 from langchain.memory import ConversationBufferMemory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -17,14 +17,12 @@ system_prompt = SystemMessage(
     content="你是一个专业的AI助手，需要用清晰简洁的中文回答用户问题。"
 )
 
-# 对话模板（调整格式匹配新版本）
 prompt = ChatPromptTemplate.from_messages([
     system_prompt,
     MessagesPlaceholder(variable_name="history"),
     ("user", "{input}")
 ])
 
-# 初始化对话链（适配新版本API）
 conversation = ConversationChain(
     llm=llm,
     prompt=prompt,
