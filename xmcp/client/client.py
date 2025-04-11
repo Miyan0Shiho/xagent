@@ -17,10 +17,14 @@ async def main():
             await session.initialize()
             
             tools = await session.list_tools()
-            print("Available tools:")
-            for tool in tools:
-                print(tool)
+            return tools
             
+def get_tools():
+    tools = asyncio.run(main())
+    available_tools = [{
+        "name": tool.name,
+        "description": tool.description,
+        "input_schema": tool.inputSchema
+    } for tool in tools.tools]
+    return available_tools
 
-if __name__ == "__main__":
-    asyncio.run(main())
