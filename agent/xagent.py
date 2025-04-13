@@ -1,10 +1,16 @@
 from langchain_ollama import OllamaLLM
-from langchain.chains import ConversationChain
-from langchain.memory import ConversationBufferMemory
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.messages import SystemMessage
+from langchain_mcp_adapters.client import MultiServerMCPClient
+from langgraph.prebuilt import create_react_agent
+import os
+import sys
 
+# 获取当前工作目录并添加到模块路径
+current_dir = os.getcwd()
+sys.path.insert(0, current_dir)
 from xmcp.client.client import get_tools
+import subprocess
+# 启动Ollama服务（后台运行）
+subprocess.Popen(["ollama", "serve"])
 
 # 初始化模型（新版本API）
 llm = OllamaLLM(
@@ -13,30 +19,13 @@ llm = OllamaLLM(
     base_url='http://localhost:11434',
     # streaming参数已移动到调用方法 [[4]][[13]]
 )
+print(get_tools())
 
-# 系统提示模板
-system_prompt = SystemMessage(
-    content="你是一个专业的AI助手，需要用清晰简洁的中文回答用户问题。"
-)
-
-prompt = ChatPromptTemplate.from_messages([
-    system_prompt,
-    MessagesPlaceholder(variable_name="history"),
-    ("user", "{input}")
-])
-
-conversation = ConversationChain(
-    llm=llm,
-    prompt=prompt,
-    memory=ConversationBufferMemory(return_messages=True),
-    verbose=True
-)
-
-# 流式输出调用方式
-response_stream = conversation.stream(
-    input="请用一句话解释人工智能是什么。"
-)
-
-# 处理流式响应（新版本输出格式）
-for chunk in response_stream:
-    print(chunk["response"], end="", flush=True)
+react_agent = create_react_agent(llm, tools=get_tools())
+agent_input = {
+            "messages": '什么是人工智能？',
+        }
+        
+        # Run the react agent subgraph with our input
+agent_response = react_agent.ainvoke(agent_input)
+print(agent_response)
