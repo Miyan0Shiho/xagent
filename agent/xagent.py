@@ -48,7 +48,7 @@ async def chat_node(state: AgentState) -> Command[Literal["__end__"]]:
         # Update the state with the new messages
         updated_messages = agent_response.get("messages", [])
         print(updated_messages[-1].content)
-        
+        print('模型调用完成')
 
 if __name__ == "__main__":
     state = AgentState(
