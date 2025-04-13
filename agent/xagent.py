@@ -1,31 +1,60 @@
-from langchain_ollama import OllamaLLM
+
+from typing_extensions import Literal, TypedDict, Dict, List, Any, Union, Optional
+from langchain_core.runnables import RunnableConfig
+from langgraph.graph import StateGraph, END
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.types import Command
+from copilotkit import CopilotKitState
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.prebuilt import create_react_agent
 import os
-import sys
+import asyncio
+from langchain_ollama import ChatOllama
+class StdioConnection(TypedDict):
+    command: str
+    args: List[str]
+    transport: Literal["stdio"]
 
-# 获取当前工作目录并添加到模块路径
-current_dir = os.getcwd()
-sys.path.insert(0, current_dir)
-from xmcp.client.client import get_tools
-import subprocess
-# 启动Ollama服务（后台运行）
-subprocess.Popen(["ollama", "serve"])
+class SSEConnection(TypedDict):
+    url: str
+    transport: Literal["sse"]
 
-# 初始化模型（新版本API）
-llm = OllamaLLM(
-    model="deepseek-r1:1.5b",
-    temperature=0.7,
-    base_url='http://localhost:11434',
-    # streaming参数已移动到调用方法 [[4]][[13]]
-)
-print(get_tools())
+# Type for MCP configuration
+MCPConfig = Dict[str, Union[StdioConnection, SSEConnection]]
 
-react_agent = create_react_agent(llm, tools=get_tools())
-agent_input = {
-            "messages": '什么是人工智能？',
+class AgentState(CopilotKitState):
+    mcp_config: Optional[MCPConfig]
+DEFAULT_MCP_CONFIG: MCPConfig = {
+    "math": {
+        "command": "python",
+        "args": ["-m", "xmcp.server.server"],
+        "transport": "stdio",
+    },
+}
+async def chat_node(state: AgentState) -> Command[Literal["__end__"]]:
+    mcp_config = state.get("mcp_config", DEFAULT_MCP_CONFIG)
+    async with MultiServerMCPClient(mcp_config) as mcp_client:
+
+        mcp_tools = mcp_client.get_tools()
+        model = ChatOllama(
+            model="qwen2.5:1.5b",
+            temperature=0,
+        ).bind_tools(tools=mcp_tools)
+        react_agent = create_react_agent(model, mcp_tools)
+        agent_input = {
+            "messages": state["messages"]
         }
+        agent_response = await react_agent.ainvoke(agent_input)
+        # Update the state with the new messages
+        updated_messages = agent_response.get("messages", [])
+        print(updated_messages[-1].content)
         
-        # Run the react agent subgraph with our input
-agent_response = react_agent.ainvoke(agent_input)
-print(agent_response)
+
+if __name__ == "__main__":
+    state = AgentState(
+        mcp_config=DEFAULT_MCP_CONFIG,
+        messages=[
+            {"role": "user", "content": "计算1+1等于几"},
+        ]
+    )
+    asyncio.run(chat_node(state))

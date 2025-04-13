@@ -43,7 +43,7 @@ import os
 import sys
 # 获取当前工作目录并添加到模块路径
 current_dir = os.getcwd()
-sys.path.insert(0, current_dir)
+sys.path.insert(0, os.path.join(current_dir,'xmcp/server'))  # 添加当前目录到模块路径
 from tools.cal_tool import calculate_sum,  calculate_difference, calculate_product, calculate_quotient, calculate_square        
 from pydantic import create_model
 
