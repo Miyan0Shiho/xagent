@@ -4,7 +4,7 @@ mcp server服务端实现
 提供以下工具：
 
 事实以及知识获取：
-    查询当前时区的时间
+    获取当前指定时区的时间
     获取当前位置
     获取指定位置的天气及天气预报
     获取制定位置的新闻
@@ -48,28 +48,15 @@ from tools.cal_tool import calculate_sum,  calculate_difference, calculate_produ
 from pydantic import create_model
 
 mcp = FastMCP("TestServer")
-
+# 事实及知识获取
+# 数据转换
+# 网页操作
+# 数据计算
 @mcp.tool()
 def calculateSum_tool(num1: float, num2: float) -> float:
     """计算两个数字的和"""
     return calculate_sum(num1, num2)
 
-@mcp.tool()
-def calculateDifference_tool(num1: float, num2: float) -> float:
-    """计算两个数字的差"""
-    return calculate_difference(num1, num2)
-@mcp.tool()
-def calculateProduct_tool(num1: float, num2: float) -> float:
-    """计算两个数字的积"""
-    return calculate_product(num1, num2)
-@mcp.tool()
-def calculateQuotient_tool(num1: float, num2: float) -> float:
-    """计算两个数字的商"""
-    return calculate_quotient(num1, num2)
-@mcp.tool()
-def calculateSquare_tool(num: float) -> float:
-    """计算一个数字的平方"""
-    return calculate_square(num)
 
 if __name__ == "__main__":
     mcp.run()
