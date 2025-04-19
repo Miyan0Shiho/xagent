@@ -35,7 +35,19 @@ DEFAULT_MCP_CONFIG = {
         "command": "python",
         "args": ["-m", "xmcp.server.server"],
         "transport": "stdio",
-    }
+    },
+    "amap-maps": {
+      "command": "python",
+      "url": "https://mcp.amap.com/sse?key=ba801fa22a5c19539c894e06d5ec9b69",
+      "transport": "sse",
+    },
+    "ftech": {
+      "command": "python",
+      "url": "https://mcp-71299b4f-da87-40bd.api-inference.modelscope.cn/sse",
+      "transport": "sse",
+    },
+    
+
 }
 
 # 初始化记忆模块（修正后的导入路径）
@@ -60,7 +72,7 @@ async def chat_node(state: AgentState) -> dict:
             
             # 获取工具集
             mcp_tools = mcp_client.get_tools()
-            
+            print(f"可用工具: {mcp_tools}")
             # 初始化模型
             model = ChatOllama(
                 model="qwen2.5:1.5b",
